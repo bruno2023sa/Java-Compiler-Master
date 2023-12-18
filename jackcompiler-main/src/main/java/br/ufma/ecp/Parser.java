@@ -1,4 +1,5 @@
 package br.ufma.ecp;
+import static br.ufma.ecp.token.TokenType.FIELD;
 import static br.ufma.ecp.token.TokenType.MINUS;
 
 import br.ufma.ecp.SymbolTable.Kind;
@@ -197,10 +198,10 @@ public class Parser {
     }
 
     void parseClassVarDec() {
-        printNonTerminal("VarDec");
-        expectPeek(TokenType.VAR);
+        printNonTerminal("ClassVarDec");
+        expectPeek(FIELD.VAR);
 
-        SymbolTable.Kind kind = jdk.jshell.Snippet.Kind.VAR;
+        SymbolTable.Kind kind = Kind.VAR;
         
         // 'int' | 'char' | 'boolean' | className
         expectPeek(TokenType.INT, TokenType.CHAR, TokenType.BOOLEAN, TokenType.IDENT);
@@ -354,6 +355,10 @@ public class Parser {
     // letStatement | ifStatement | whileStatement | doStatement | returnStatement
     void parseStatement() {
         switch (peekToken.type) {
+            case NUMBER:
+                expectPeek(TokenType.NUMBER);
+                vmWriter.writePush(Segment.CONST, Integer.parseInt(currentToken.lexeme));
+                break;
             case LET:
                 parseLet();
                 break;
