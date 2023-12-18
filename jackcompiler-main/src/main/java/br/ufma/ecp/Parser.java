@@ -1,12 +1,12 @@
 package br.ufma.ecp;
-import static br.ufma.ecp.token.TokenType.FIELD;
 import static br.ufma.ecp.token.TokenType.MINUS;
 import static br.ufma.ecp.token.TokenType.NOT;
 import br.ufma.ecp.VMWriter.Command;
 import br.ufma.ecp.VMWriter.Segment;
-import br.ufma.ecp.token.*;
 import br.ufma.ecp.token.Token;
 import br.ufma.ecp.token.TokenType;
+import br.ufma.ecp.SymbolTable.Kind;
+import br.ufma.ecp.SymbolTable.Symbol;
 
 
 public class Parser {
@@ -66,7 +66,10 @@ public class Parser {
         switch (peekToken.type) {
           case NUMBER:
             expectPeek(TokenType.NUMBER);
+            vmWriter.writePush(Segment.CONST, Integer.parseInt(currentToken.lexeme));
+                System.out.println(currentToken);
             break;
+
           case STRING:
             expectPeek(TokenType.STRING);
             var strValue = currentToken.lexeme;
@@ -77,10 +80,12 @@ public class Parser {
                 vmWriter.writeCall("String.appendChar", 2);
                 }
             break;
-          case IDENT:
+
+            case IDENT:
                 
             expectPeek(TokenType.IDENT);
-            SymbolTable sym = symTable.resolve(currentToken.lexeme);
+
+            Symbol symTable = symTable.resolve(currentToken.lexeme);
             
             if (peekTokenIs(TokenType.LPAREN) || peekTokenIs(TokenType.DOT)) {
                 parseSubroutineCall();
@@ -94,9 +99,9 @@ public class Parser {
                 }
             }
             break;
-          case FALSE:
-          case NULL:
-          case TRUE:
+        case FALSE:
+        case NULL:
+        case TRUE:
           expectPeek(TokenType.FALSE, TokenType.NULL, TokenType.TRUE);   
           vmWriter.writePush(Segment.CONST, 0);
           if (currentToken.type == TokenType.TRUE)
@@ -295,7 +300,7 @@ public class Parser {
             expectPeek(TokenType.LBRACKET);
             parseExpression();
     
-            vmWriter.writePush(kindSegment2 (symbol.Kind(), symbol.index));
+            vmWriter.writePush(kind2Segment(symbol.kind()), symbol.index());
             vmWriter.writeArithmetic(Command.ADD);
             expectPeek(TokenType.RBRACKET);
     
@@ -313,7 +318,7 @@ public class Parser {
             vmWriter.writePop(Segment.THAT, 0); 
     
         } else {
-            vmWriter.writePop(kindSegment2(symbol.kind()), symbol.index());
+            //vmWriter.writePop(kind2Segment(symbol.kind()), symbol.index());
         }
     
         expectPeek(TokenType.SEMICOLON);
@@ -354,10 +359,10 @@ public class Parser {
         while (peekTokenIs(TokenType.VAR)) {
             parseVarDec();
         }
-                var numlocals = symTable.varCont(Kind.VAR);
+                var numlocals = symTable.varCount(Kind.VAR);
         vmWriter.writeFunction(functionName, numlocals);
         if (subroutineType == TokenType.CONSTRUCTOR) {
-            vmWriter.writePush(Segment.CONST, symTable.varCont(Kind.FIELD));
+            vmWriter.writePush(Segment.CONST, symTable.varCount(Kind.FIELD));
             vmWriter.writeCall("Memory.alloc", 1);
             vmWriter.writePop(Segment.POINTER, 0);
         }
