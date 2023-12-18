@@ -817,6 +817,28 @@ public class ParserTest extends TestSupport {
                     """;
             assertEquals(expected, actual);
     }
+    @Test
+    public void testSimpleFunctionWithVar () {
+        var input = """
+            class Main {
+
+                 function int funcao () {
+                        var int d;
+                        return d;
+                  }
+                
+                }
+            """;;
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parser();
+        String actual = parser.VMOutput();
+        String expected = """
+            function Main.funcao 1
+            push local 0
+            return
+            """;
+        assertEquals(expected, actual);
+    }
 
     @Test
     public void testSimpleFunctions () {
@@ -849,6 +871,67 @@ public class ParserTest extends TestSupport {
     }
 
     @Test
+    public void testLet () {
+        var input = """
+            class Main {
+            
+              function void main () {
+                  var int x;
+                  let x = 42;
+                  return;
+              }
+            }
+            """;;
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parser();
+        String actual = parser.VMOutput();
+        String expected = """
+            function Main.main 1
+            push constant 42
+            pop local 0
+            push constant 0
+            return
+                """;
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void arrayTest () {
+        var input = """
+            class Main {
+                function void main () {
+                    var Array v;
+                    let v[2] = v[3] + 42;
+                    return;
+                }
+            }
+            """;;
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parser();
+        String actual = parser.VMOutput();
+        String expected = """
+            function Main.main 1
+            push constant 2
+            push local 0
+            add
+            push constant 3
+            push local 0
+            add
+            pop pointer 1
+            push that 0
+            push constant 42
+            add
+            pop temp 0
+            pop pointer 1
+            push temp 0
+            pop that 0
+            push constant 0
+            return        
+                """;
+        assertEquals(expected, actual);
+    }
+
+        @Test
     public void testVarDeclaration () {
 
       var input = """
