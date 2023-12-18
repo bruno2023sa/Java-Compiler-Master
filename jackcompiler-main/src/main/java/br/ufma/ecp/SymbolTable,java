@@ -8,7 +8,7 @@ public class SymbolTable {
         STATIC, ARG, VAR,FIELD
     };
 
-    public static record Symbol(String name, String type, Kind kind, int index){
+    public static record symbol(String name, String type, Kind kind, int index){
 
     }
 
