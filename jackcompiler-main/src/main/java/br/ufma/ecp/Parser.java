@@ -1,4 +1,6 @@
 package br.ufma.ecp;
+import static br.ufma.ecp.token.TokenType.MINUS;
+
 import br.ufma.ecp.SymbolTable.Kind;
 import br.ufma.ecp.SymbolTable.Symbol;
 import br.ufma.ecp.VMWriter.Command;
@@ -60,7 +62,7 @@ public class Parser {
         printNonTerminal("/class");
     }
 
-        void parseTerm() {
+    void parseTerm() {
         printNonTerminal("term");
         switch (peekToken.type) {
           case NUMBER:
@@ -68,37 +70,57 @@ public class Parser {
             break;
           case STRING:
             expectPeek(TokenType.STRING);
+            var strValue = currentToken.lexeme;
+            vmWriter.writePush(Segment.CONST, strValue.length());
+            vmWriter.writeCall("String.new", 1);
+            for (int i = 0; i < strValue.length(); i++) {
+                vmWriter.writePush(Segment.CONST, strValue.charAt(i));
+                vmWriter.writeCall("String.appendChar", 2);
+                }
+            break;
+          case IDENT:
+                
+            expectPeek(TokenType.IDENT);
+            Symbol sym = symTable.resolve(currentToken.lexeme);
+            
+            if (peekTokenIs(TokenType.LPAREN) || peekTokenIs(TokenType.DOT)) {
+                parseSubroutineCall();
+            } else { 
+                if (peekTokenIs(TokenType.LBRACKET)) { 
+                    expectPeek(TokenType.LBRACKET);
+                    parseExpression();                        
+                    expectPeek(TokenType.RBRACKET);                       
+                } else {
+                  //  vmWriter.writePush(kind2Segment(sym.kind()), sym.index());
+                }
+            }
             break;
           case FALSE:
           case NULL:
           case TRUE:
-            expectPeek(TokenType.FALSE, TokenType.NULL, TokenType.TRUE);
+          expectPeek(TokenType.FALSE, TokenType.NULL, TokenType.TRUE);   
+          vmWriter.writePush(Segment.CONST, 0);
+          if (currentToken.type == TokenType.TRUE)
+              vmWriter.writeArithmetic(Command.NOT);  
             break;
           case THIS:
             expectPeek(TokenType.THIS);
+            vmWriter.writePush(Segment.POINTER, 0);
             break;
-          case IDENT:
-            expectPeek(TokenType.IDENT);
-            if (peekTokenIs(TokenType.LPAREN) || peekTokenIs(TokenType.DOT)) {
-                    parseSubroutineCall();
-                } else { // variavel comum ou array
-                    if (peekTokenIs(TokenType.LBRACKET)) { // array
-                        expectPeek(TokenType.LBRACKET);
-                        parseExpression();
-
-                        expectPeek(TokenType.RBRACKET);// push the value of the address pointer back onto stack
-                    }
-                }
-            break;
-        case LPAREN:
+          case LPAREN:
             expectPeek(TokenType.LPAREN);
             parseExpression();
             expectPeek(TokenType.RPAREN);
             break;
-        case MINUS:
-        case NOT:
-            expectPeek(TokenType.MINUS, TokenType.NOT);
+          case MINUS:
+          case NOT:
+            expectPeek(MINUS, NOT);
+            var op = currentToken.type;
             parseTerm();
+            if (op == MINUS)
+                vmWriter.writeArithmetic(Command.NEG);
+            else
+                vmWriter.writeArithmetic(Command.NOT);
             break;
           default:
             throw error(peekToken, "term expected");
@@ -460,6 +482,47 @@ public class Parser {
 
         expectPeek(TokenType.SEMICOLON);
         printNonTerminal("/varDec");
+    }
+   
+    public void compileOperators(TokenType type) {
+
+        if (type == TokenType.ASTERISK) {
+            vmWriter.writeCall("Math.multiply", 2);
+        } else if (type == TokenType.SLASH) {
+            vmWriter.writeCall("Math.divide", 2);
+        } else {
+            vmWriter.writeArithmetic(typeOperator(type));
+        }
+    }
+
+    private Command typeOperator(TokenType type) {
+        if (type == TokenType.PLUS)
+            return Command.ADD;
+        if (type == TokenType.MINUS)
+            return Command.SUB;
+        if (type == TokenType.LT)
+            return Command.LT;
+        if (type == TokenType.GT)
+            return Command.GT;
+        if (type == TokenType.EQ)
+            return Command.EQ;
+        if (type == TokenType.AND)
+            return Command.AND;
+        if (type == TokenType.OR)
+            return Command.OR;
+        return null;
+    }
+
+    private Segment kind2Segment(Kind kind) {
+        if (kind == Kind.STATIC)
+            return Segment.STATIC;
+        if (kind == Kind.FIELD)
+            return Segment.THIS;
+        if (kind == Kind.VAR)
+            return Segment.LOCAL;
+        if (kind == Kind.ARG)
+            return Segment.ARG;
+        return null;
     }
 
     // 'do' subroutineCall ';'
