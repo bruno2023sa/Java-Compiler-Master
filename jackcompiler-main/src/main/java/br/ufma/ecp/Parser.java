@@ -95,7 +95,7 @@ public class Parser {
                     parseExpression();                        
                     expectPeek(TokenType.RBRACKET);                       
                 } else {
-                  //  vmWriter.writePush(kind2Segment(sym.kind()), sym.index());
+                  vmWriter.writePush(kind2Segment(sym.kind()), sym.index());
                 }
             }
             break;
