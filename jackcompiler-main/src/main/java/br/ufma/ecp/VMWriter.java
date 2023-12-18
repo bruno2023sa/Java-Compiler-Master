@@ -1,4 +1,5 @@
 package br.ufma.ecp;
+
 public class VMWriter {
     private StringBuilder vmOutput = new StringBuilder();
 

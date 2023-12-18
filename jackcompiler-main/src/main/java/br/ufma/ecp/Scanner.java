@@ -51,41 +51,36 @@ public class Scanner {
         start = 0;
     }
 
-    private void skipLineComments() {
+    private void skipBlockComments() {
+        boolean endComment = false;
+        advance();
+        while (!endComment) {
+            advance();
+            char ch = peek();
+            if (ch == '\n')
+                line++;
+            if ( ch == 0) { // eof, lexical error
+                System.exit(1);
+            }
+         
+            if (ch == '*') {
+               for (ch = peek(); ch == '*';  advance(), ch = peek()) ;
+                if (ch == '/') {
+                    endComment = true;
+                    advance();
+                }
+            }
 
+        }
+    }
+
+    private void skipLineComments() {
         for (char ch = peek(); ch != '\n' && ch != 0; advance(), ch = peek())
             if (ch == '\n')
                 line++;
     }
 
-    private void skipBlockComments() {
-        boolean endComment = false;
-        advance();
-    
-        while (!endComment) {
-          advance();
-          char ch = peek();
-    
-          if (ch == '\n')
-              line++;
-    
-          if (ch == 0) { // eof, lexical error
-            System.exit(1);
-          }
-    
-          if (ch == '*') {
-            for (ch = peek(); ch == '*'; advance(), ch = peek())
-              ;
-            if (ch == '/') {
-              endComment = true;
-              advance();
-            }
-          }
-    
-        }
-      }
-
-      private void skipWhitespace() {
+    private void skipWhitespace() {
         char ch = peek();
         while (ch == ' ' || ch == '\r' || ch == '\t' || ch == '\n') {
 
@@ -96,7 +91,15 @@ public class Scanner {
             ch = peek();
         }
     }
-    
+
+    private char peekNext () {
+        int next = current + 1;
+        if ( next  < input.length) {
+            return (char)input[next];
+        } else {
+            return 0;
+        }
+   }
 
     public Token nextToken () {
 
@@ -105,24 +108,71 @@ public class Scanner {
         start = current;
         char ch = peek();
 
-        if (ch == '\0') {
-            return new Token(TokenType.EOF, "", line);
+        if (Character.isDigit(ch)) {
+            return number();
         }
-        
+
         if (isAlpha(ch)) {
             return identifier();
         }
 
-        if (ch == '0') {
-            advance();
-            return new Token (TokenType.NUMBER, Character.toString(ch), line);
-        }  else if (Character.isDigit(ch))
-            return number();
-
         switch (ch) {
 
-            case '"':
-                return string();
+            case '*':
+                advance();
+                return new Token (TokenType.ASTERISK,"*", line); 
+            case '.':
+                advance();
+                return new Token (TokenType.DOT,".", line); 
+            case '&':
+                advance();
+                return new Token (TokenType.AND,"&", line); 
+            case '|':
+                advance();
+                return new Token (TokenType.OR,"|", line); 
+            case '~':
+                advance();
+                return new Token (TokenType.NOT,"~", line); 
+
+            case '>':
+                advance();
+                return new Token (TokenType.GT,">", line); 
+            case '<':
+                advance();
+                return new Token (TokenType.LT,"<", line); 
+            case '=':
+                advance();
+                return new Token (TokenType.EQ,"=", line); 
+            case '(':
+                advance();
+                return new Token (TokenType.LPAREN,"(", line); 
+            case ')':
+                advance();
+                return new Token (TokenType.RPAREN,")", line); 
+            case '{':
+                advance();
+                return new Token (TokenType.LBRACE,"{", line); 
+            case '}':
+                advance();
+                return new Token (TokenType.RBRACE,"}", line); 
+            case '[':
+                advance();
+                return new Token (TokenType.LBRACKET,"[", line); 
+            case ']':
+                advance();
+                return new Token (TokenType.RBRACKET,"]", line); 
+            case ';':
+                advance();
+                return new Token (TokenType.SEMICOLON,";", line); 
+            case ',':
+                advance();
+                return new Token (TokenType.COMMA,",", line);
+            case '+':
+                advance();
+                return new Token(TokenType.PLUS, "+", line);
+            case '-':
+                advance();
+                return new Token (MINUS,"-", line);
             case '/':
                 if (peekNext() == '/') {
                     skipLineComments();
@@ -135,62 +185,10 @@ public class Scanner {
                     advance();
                     return new Token (TokenType.SLASH,"/", line);
                 }
-                case '+':
-                advance();
-                return new Token (TokenType.PLUS,"+",line);
-            case '-':
-                advance();
-                return new Token (TokenType.MINUS,"-",line); 
-            case '*':
-                advance();
-                return new Token (TokenType.ASTERISK,"*",line); 
-            case '.':
-                advance();
-                return new Token (TokenType.DOT,".",line); 
-            case '&':
-                advance();
-                return new Token (TokenType.AND,"&",line); 
-            case '|':
-                advance();
-                return new Token (TokenType.OR,"|",line); 
-            case '~':
-                advance();
-                return new Token (TokenType.NOT,"~",line); 
-
-            case '>':
-                advance();
-                return new Token (TokenType.GT,">",line); 
-            case '<':
-                advance();
-                return new Token (TokenType.LT,"<",line); 
-            case '=':
-                advance();
-                return new Token (TokenType.EQ,"=",line); 
-        
-            case '(':
-                advance();
-                return new Token (TokenType.LPAREN,"(",line); 
-            case ')':
-                advance();
-                return new Token (TokenType.RPAREN,")",line); 
-            case '{':
-                advance();
-                return new Token (TokenType.LBRACE,"{",line); 
-            case '}':
-                advance();
-                return new Token (TokenType.RBRACE,"}",line); 
-            case '[':
-                advance();
-                return new Token (TokenType.LBRACKET,"[",line); 
-            case ']':
-                advance();
-                return new Token (TokenType.RBRACKET,"]",line); 
-            case ';':
-                advance();
-                return new Token (TokenType.SEMICOLON,";",line); 
-            case ',':
-                advance();
-                return new Token (TokenType.COMMA,",",line);
+            case '"':
+                return string();
+            case 0:
+                return new Token (EOF,"EOF", line);
             default:
                 advance();
                 return new Token(ILLEGAL, Character.toString(ch), line);
@@ -225,12 +223,9 @@ public class Scanner {
         Token token = new Token (TokenType.STRING,s, line);
         advance();
         return token;
-    }
+ }
 
     private void advance()  {
-        // if (current < input.length) {
-        //     current++;
-        // }
         char ch = peek();
         if (ch != 0) {
             current++;
@@ -254,17 +249,6 @@ public class Scanner {
        return 0;
     }
 
-    private char peekNext () {
-        int next = current + 1;
-        if ( next  < input.length) {
-            return (char)input[next];
-        } else {
-            return 0;
-        }
-   }
 
-
- 
-   
-
+    
 }

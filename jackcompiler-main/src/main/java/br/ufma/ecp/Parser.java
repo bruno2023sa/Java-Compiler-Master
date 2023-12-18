@@ -2,14 +2,12 @@ package br.ufma.ecp;
 import static br.ufma.ecp.token.TokenType.FIELD;
 import static br.ufma.ecp.token.TokenType.MINUS;
 import static br.ufma.ecp.token.TokenType.NOT;
-
-import br.ufma.ecp.SymbolTable.Kind;
-import br.ufma.ecp.SymbolTable.Symbol;
 import br.ufma.ecp.VMWriter.Command;
 import br.ufma.ecp.VMWriter.Segment;
 import br.ufma.ecp.token.*;
 import br.ufma.ecp.token.Token;
 import br.ufma.ecp.token.TokenType;
+
 
 public class Parser {
 
@@ -82,7 +80,7 @@ public class Parser {
           case IDENT:
                 
             expectPeek(TokenType.IDENT);
-            SymbolTable sym = symbolTable.resolve(currentToken.lexeme);
+            SymbolTable sym = symTable.resolve(currentToken.lexeme);
             
             if (peekTokenIs(TokenType.LPAREN) || peekTokenIs(TokenType.DOT)) {
                 parseSubroutineCall();
@@ -297,7 +295,7 @@ public class Parser {
             expectPeek(TokenType.LBRACKET);
             parseExpression();
     
-            vmWriter.writePush(kindSegment2(symbol.Kind()), symbol.index());
+            vmWriter.writePush(kindSegment2 (symbol.Kind(), symbol.index));
             vmWriter.writeArithmetic(Command.ADD);
             expectPeek(TokenType.RBRACKET);
     
