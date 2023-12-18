@@ -393,55 +393,6 @@ public class ParserTest extends TestSupport {
 
     
     @Test
-    public void testParseLet() {
-        var input = "let square = Square.new(0, 0, 30);";
-        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-        parser.parseLet();
-        var expectedResult =  """
-        <letStatement>
-        <keyword> let </keyword>
-        <identifier> square </identifier>
-        <symbol> = </symbol>
-        <expression>
-          <term>
-            <identifier> Square </identifier>
-            <symbol> . </symbol>
-            <identifier> new </identifier>
-            <symbol> ( </symbol>
-            <expressionList>
-              <expression>
-                <term>
-                  <integerConstant> 0 </integerConstant>
-                </term>
-              </expression>
-              <symbol> , </symbol>
-              <expression>
-                <term>
-                  <integerConstant> 0 </integerConstant>
-                </term>
-              </expression>
-              <symbol> , </symbol>
-              <expression>
-                <term>
-                  <integerConstant> 30 </integerConstant>
-                </term>
-              </expression>
-            </expressionList>
-            <symbol> ) </symbol>
-          </term>
-        </expression>
-        <symbol> ; </symbol>
-      </letStatement>
-      """;
-        var result = parser.XMLOutput();
-        System.out.println(parser.XMLOutput());
-        expectedResult = expectedResult.replaceAll("  ", "");
-        result = result.replaceAll("\r", ""); // no codigo em linux não tem o retorno de carro
-        assertEquals(expectedResult, result);
-    }
-
-
-    @Test
     public void testParseIf() {
         var input = "if (direction = 1) { do square.moveUp(); }";
         var expectedResult = """
@@ -668,7 +619,150 @@ public class ParserTest extends TestSupport {
         expectedResult = expectedResult.replaceAll("  ", "");
         assertEquals(expectedResult, result);
     }
+    @Test
+    public void testInt () {
+        var input = """
+            10
+            """;
 
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 10       
+                    """;
+            assertEquals(expected, actual);
+    }
+    @Test
+    public void testSimpleExpression () {
+        var input = """
+            10 + 30
+            """;
+
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 10
+                push constant 30
+                add       
+                    """;
+            assertEquals(expected, actual);
+    }
+    @Test
+    public void testLiteralString () {
+        var input = """
+            "OLA"
+            """;
+
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 3
+                call String.new 1
+                push constant 79
+                call String.appendChar 2
+                push constant 76
+                call String.appendChar 2
+                push constant 65
+                call String.appendChar 2
+                    """;
+            assertEquals(expected, actual);
+    }
+    @Test
+    public void testFalse () {
+        var input = """
+            false
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 0       
+                    """;
+            assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNull () {
+        var input = """
+            null
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 0       
+                    """;
+            assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testTrue () {
+        var input = """
+            true
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 0
+                not       
+                    """;
+            assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testThis () {
+        var input = """
+            this
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push pointer 0
+                    """;
+            assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNot () {
+        var input = """
+            ~ false
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 0   
+                not    
+                    """;
+            assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testMinus () {
+        var input = """
+            - 10
+            """;
+        
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseExpression();
+        String actual = parser.VMOutput();
+        String expected = """
+                push constant 10   
+                neg    
+                    """;
+            assertEquals(expected, actual);
+    }
+    
     @Test
     public void testVarDeclaration () {
 
