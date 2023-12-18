@@ -85,7 +85,7 @@ public class Parser {
                 
             expectPeek(TokenType.IDENT);
 
-            Symbol symTable = symTable.resolve(currentToken.lexeme);
+            Symbol sym = symTable.resolve(currentToken.lexeme);
             
             if (peekTokenIs(TokenType.LPAREN) || peekTokenIs(TokenType.DOT)) {
                 parseSubroutineCall();
