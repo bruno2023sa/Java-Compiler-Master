@@ -1,7 +1,7 @@
 package br.ufma.ecp.token;
 
 import java.util.List;
-import java.util.Map;
+//import java.util.Map;
 
 public enum TokenType {
     PLUS,MINUS, SLASH,
