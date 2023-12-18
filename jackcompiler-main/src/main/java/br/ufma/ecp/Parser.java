@@ -1,11 +1,11 @@
 package br.ufma.ecp;
+import br.ufma.ecp.SymbolTable.Kind;
+import br.ufma.ecp.SymbolTable.Symbol;
 import br.ufma.ecp.VMWriter.Command;
 import br.ufma.ecp.VMWriter.Segment;
 import br.ufma.ecp.token.*;
 import br.ufma.ecp.token.Token;
 import br.ufma.ecp.token.TokenType;
-import br.ufma.ecp.SymbolTable.Kind;
-import br.ufma.ecp.SymbolTable.Symbol;
 
 public class Parser {
 
@@ -35,7 +35,7 @@ public class Parser {
     }
 
 
-    void parse() {
+    void parser() {
         parseClass();
     }
 
@@ -44,7 +44,7 @@ public class Parser {
         printNonTerminal("class");
         expectPeek(TokenType.CLASS);
         expectPeek(TokenType.IDENT);
-        className = currentToken.value();
+        className = currentToken.lexeme;
         expectPeek(TokenType.LBRACE);
 
         while (peekTokenIs(TokenType.STATIC) || peekTokenIs(TokenType.FIELD)) {
@@ -143,24 +143,7 @@ public class Parser {
         return nArgs;
     }
 
-    void parseLet() {
-        printNonTerminal("letStatement");
-        expectPeek(TokenType.LET);
-        expectPeek(TokenType.IDENT);
-
-        if (peekTokenIs(TokenType.LBRACKET)) {
-            expectPeek(TokenType.LBRACKET);
-            parseExpression();
-            expectPeek(TokenType.RBRACKET);
-        }
-
-        expectPeek(TokenType.EQ);
-        parseExpression();
-        expectPeek(TokenType.SEMICOLON);
-        printNonTerminal("/letStatement");
-    }
-
-    /**
+     /**
      * 
      */
     void parseSubroutineCall() {
@@ -244,7 +227,7 @@ public class Parser {
     }
 
     void parseLet() {
-        
+
         var isArray = false;
         printNonTerminal("letStatement");
         expectPeek(TokenType.LET);
@@ -317,7 +300,7 @@ public class Parser {
             parseVarDec();
         }
                 var numlocals = symbolTable.varCont(Kind.VAR);
-        vmWriter.writeFunction(functName, numlocals);
+        vmWriter.writeFunction(functionName, numlocals);
         if (subroutineType == TokenType.CONSTRUCTOR) {
             vmWriter.writePush(Segment.CONST, symbolTable.varCont(Kind.FIELD));
             vmWriter.writeCall("Memory.alloc", 1);

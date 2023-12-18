@@ -41,7 +41,7 @@ public enum TokenType {
 
      EOF,
 
-     ILLEGAL;
+     ILLEGAL, AST;
 
     static public boolean isSymbol (char c) {
         String symbols = "{}()[].,;+-*/&|<>=~";

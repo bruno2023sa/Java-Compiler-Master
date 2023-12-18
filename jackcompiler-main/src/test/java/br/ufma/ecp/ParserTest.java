@@ -328,26 +328,54 @@ public class ParserTest extends TestSupport {
     
     @Test
     public void testParseLetSimple1() {
-        var input = "let var1 = 10+20;";
+        var input = "let string = 10+20;";
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
         parser.parseLet();
-				var expectedResult =  """
-	     <letStatement>
+                System.out.println(parser.XMLOutput());
+    }
+
+
+    @Test
+    public void testParseLet() {
+        var input = "let square = Square.new(0, 0, 30);";
+        var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
+        parser.parseLet();
+        var expectedResult =  """
+        <letStatement>
         <keyword> let </keyword>
-        <identifier> var1 </identifier>
+        <identifier> square </identifier>
         <symbol> = </symbol>
         <expression>
           <term>
-          <integerConstant> 10 </integerConstant>
+          <identifier> Square </identifier>
+            <symbol> . </symbol>
+            <identifier> new </identifier>
+            <symbol> ( </symbol>
+            <expressionList>
+              <expression>
+                <term>
+                  <integerConstant> 0 </integerConstant>
+                </term>
+              </expression>
+              <symbol> , </symbol>
+              <expression>
+                <term>
+                  <integerConstant> 0 </integerConstant>
+                </term>
+              </expression>
+              <symbol> , </symbol>
+              <expression>
+                <term>
+                  <integerConstant> 30 </integerConstant>
+                </term>
+              </expression>
+            </expressionList>
+            <symbol> ) </symbol>
           </term>
-          <symbol> + </symbol>
-          <term>
-          <integerConstant> 20 </integerConstant>
-          </term>
-          </expression>
+        </expression>
         <symbol> ; </symbol>
       </letStatement> 
-				""";
+			""";
         var result = parser.XMLOutput();
         expectedResult = expectedResult.replaceAll("  ", "");
         result = result.replaceAll("\r", ""); // no codigo em linux não tem o retorno de carro
@@ -610,7 +638,7 @@ public class ParserTest extends TestSupport {
         var expectedResult =  fromFile("ExpressionLessSquare/SquareGame.xml");
 
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-        parser.parse();
+        parser.parser();
         var result = parser.XMLOutput();
         expectedResult = expectedResult.replaceAll("  ", "");
         assertEquals(expectedResult, result);
@@ -622,7 +650,7 @@ public class ParserTest extends TestSupport {
         var expectedResult =  fromFile("Square/SquareGame.xml");
 
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-        parser.parse();
+        parser.parser();
         var result = parser.XMLOutput();
         expectedResult = expectedResult.replaceAll("  ", "");
         assertEquals(expectedResult, result);
@@ -635,7 +663,7 @@ public class ParserTest extends TestSupport {
         var expectedResult =  fromFile("Square/Square.xml");
 
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-        parser.parse();
+        parser.parser();
         var result = parser.XMLOutput();
         expectedResult = expectedResult.replaceAll("  ", "");
         assertEquals(expectedResult, result);
@@ -657,7 +685,7 @@ public class ParserTest extends TestSupport {
         }
         """;;
     var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-    parser.parse();
+    parser.parser();
     var result = parser.XMLOutput();
     System.out.println(result);
 
