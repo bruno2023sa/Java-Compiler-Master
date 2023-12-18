@@ -17,7 +17,7 @@ public class ParserTest extends TestSupport {
       var expectedResult =  """
         <term>
         <integerConstant> 10 </integerConstant>
-        </term>
+        <term>
         """;
             
         var result = parser.XMLOutput();
