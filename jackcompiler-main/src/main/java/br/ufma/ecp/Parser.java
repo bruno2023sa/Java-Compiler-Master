@@ -1,6 +1,7 @@
 package br.ufma.ecp;
 import static br.ufma.ecp.token.TokenType.FIELD;
 import static br.ufma.ecp.token.TokenType.MINUS;
+import static br.ufma.ecp.token.TokenType.NOT;
 
 import br.ufma.ecp.SymbolTable.Kind;
 import br.ufma.ecp.SymbolTable.Symbol;
@@ -259,7 +260,7 @@ public class Parser {
         printNonTerminal("subroutineDec");
         ifLabelNum = 0;
         whileLabelNum = 0;
-        symbolTable.startSubroutine();
+        symTable.startSubroutine();
 
         expectPeek(TokenType.CONSTRUCTOR, TokenType.FUNCTION, TokenType.METHOD);
         var subroutineType = currentToken.type;
@@ -289,14 +290,14 @@ public class Parser {
         expectPeek(TokenType.LET);
         expectPeek(TokenType.IDENT);
         // **
-        var symbol = symbolTable.resolve(currentToken.lexeme);
+        var symbol = symTable.resolve(currentToken.lexeme);
         // **
         // array
         if (peekTokenIs(TokenType.LBRACKET)) {
             expectPeek(TokenType.LBRACKET);
             parseExpression();
     
-            vmWriter.writePush(kindSegment2(symbol.kind()), symbol.index());
+            vmWriter.writePush(kindSegment2(symbol.Kind()), symbol.index());
             vmWriter.writeArithmetic(Command.ADD);
             expectPeek(TokenType.RBRACKET);
     
@@ -355,7 +356,7 @@ public class Parser {
         while (peekTokenIs(TokenType.VAR)) {
             parseVarDec();
         }
-                var numlocals = symbolTable.varCont(Kind.VAR);
+                var numlocals = symTable.varCont(Kind.VAR);
         vmWriter.writeFunction(functionName, numlocals);
         if (subroutineType == TokenType.CONSTRUCTOR) {
             vmWriter.writePush(Segment.CONST, symTable.varCont(Kind.FIELD));
