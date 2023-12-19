@@ -73,7 +73,7 @@ public class ParserTest extends TestSupport {
      */
     @Test
     public void testParseExpressionSimple() {
-        var input = "10+20;";
+        var input = "10+20";
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
         parser.parseExpressionList();
         
@@ -629,7 +629,7 @@ public class ParserTest extends TestSupport {
             """;
 
         var parser = new Parser(input.getBytes(StandardCharsets.UTF_8));
-        parser.parseExpressionList();
+        parser.parseTerm();
         String actual = parser.VMOutput();
         String expected = """
                 push constant 10       
