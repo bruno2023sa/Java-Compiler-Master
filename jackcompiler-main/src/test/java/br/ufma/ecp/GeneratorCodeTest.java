@@ -43,6 +43,7 @@ public class GeneratorCodeTest {
             assertEquals(expected, actual);
     }
 
+    
     @Test
     public void testLiteralString () {
         var input = """
@@ -669,7 +670,7 @@ public class GeneratorCodeTest {
         var input = """
             class Main {
                 function void main () {
-                    do Output.printInt (10+20-60*4/2);
+                    do Output.printInt (10+20-60*4/2); 
                     return;
                 }
             }
